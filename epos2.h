@@ -9,9 +9,21 @@
 /**
  * @brief Read from the EPOS object dictionary.
  *
- * It is a non-blocking function call.
+ * It is a blocking function call.
  *
  * @returns 0 if success, nonzero otherwise.
  */
 int epos_read_object(int fd, uint16_t index, uint8_t subindex, uint8_t nodeid,
                      uint32_t *object);
+
+
+/**
+ * @brief Write to the EPOS object dictionary.
+ *
+ * It is a blocking function call.
+ *
+ * @returns 0 if success, nonzero otherwise.
+ */
+int epos_write_object(int fd, uint16_t index, uint8_t subindex, uint8_t nodeid,
+                      uint32_t object);
+

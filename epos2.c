@@ -5,9 +5,10 @@
 
 #include "epos2.h"
 
-#include <poll.h>
-#include <termios.h>
 #include <unistd.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif//_WIN32
 
 #include <stdio.h>
 
@@ -18,9 +19,13 @@ enum {
     FAIL = -1
 };
 
+enum {
+    READ_OBJECT_OPCODE = 0x10,
+    WRITE_OBJECT_OPCODE = 0x11
+} epos_opcode;
 
-static uint16_t crc_ccitt(uint8_t *buf, size_t len, uint16_t crc);
 
+//  --- Utility functions --- //
 
 static inline int fail(const char *msg) {
 #ifdef DEBUG
@@ -30,19 +35,48 @@ static inline int fail(const char *msg) {
 }
 
 
-int timeout_read(int fd, void *buf, size_t len) {
-    struct pollfd fds = {.fd = fd, .events = POLLIN};
-    if (poll(&fds, 1, TIMEOUT_MS) < 0)
-        return fail("Error in poll.");
-    
-    if (!(fds.revents & POLLIN))
-        return fail("Timeout during read.");
-    
+static inline int fail_code(const char *msg, uint32_t code) {
+#ifdef DEBUG
+    fprintf(stderr, "%s: '%08x'\n", msg, code);
+#endif//DEBUG
+    return FAIL;
+}
+
+
+static int timeout_read(int fd, void *buf, size_t len) {
     if (read(fd, buf, len) != len)
         return fail("Not all data received before timeout.");
     
     return SUCCESS;
 }
+
+
+static void flush_buffers(int fd) {
+    //TODO
+}
+
+
+static uint16_t pack_le_uint16(uint8_t *buf) {
+    uint16_t ret = buf[0];
+    ret += (uint16_t) buf[1] << 8;
+    
+    return ret;
+}
+
+
+static uint32_t pack_le_uint32(uint8_t *buf) {
+    uint32_t ret = buf[0];
+    ret += (uint32_t) buf[1] << 8;
+    ret += (uint32_t) buf[2] << 16;
+    ret += (uint32_t) buf[3] << 24;
+    
+    return ret;
+}
+
+
+//  --- Protocol functions --- //
+
+static uint16_t crc_ccitt(uint8_t *buf, size_t len, uint16_t crc);
 
 
 int send_frame(int fd, uint8_t opcode, size_t len, uint8_t *data) {
@@ -100,16 +134,14 @@ int recv_frame(int fd, size_t len, uint8_t *data) {
     if (timeout_read(fd, data, len))
         return fail("Timeout waiting for message data.");
     
-    uint8_t crc_bytes[2];
-    if (timeout_read(fd, crc_bytes, 2))
+    uint8_t recv_crc[2];
+    if (timeout_read(fd, recv_crc, 2))
         return fail("Timeout waiting for crc.");
-    uint16_t recv_crc = crc_bytes[0];
-    recv_crc += (uint16_t) crc_bytes[1] << 8;
     
     uint16_t crc = crc_ccitt(&opcode, 1, 0);
     crc = crc_ccitt(&len_minus_1, 1, crc);
     crc = crc_ccitt(data, len, crc);
-    if (crc != recv_crc) {
+    if (crc != pack_le_uint16(recv_crc)) {
         uint8_t end_ack = 'F';
         if (write(fd, &end_ack, 1) != 1)
             return fail("Error sending (failed) end ack.");
@@ -125,9 +157,49 @@ int recv_frame(int fd, size_t len, uint8_t *data) {
 }
 
 
+//  --- Exported module functions --- //
+
 int epos_read_object(int fd, uint16_t index, uint8_t subindex,
                      uint8_t nodeid, uint32_t *object) {
-    //tcflush(fd, TCIOFLUSH);
+    flush_buffers(fd);
+    
+    uint8_t request[4] = {index, index >> 8, subindex, nodeid};
+    if (send_frame(fd, READ_OBJECT_OPCODE, sizeof request, request))
+        return fail("Error sending ReadObject frame.");
+    
+    uint8_t response[8];
+    if (recv_frame(fd, sizeof response, response))
+        return fail("Error receiving ReadObject response.");
+    
+    uint32_t error = pack_le_uint32(response);
+    if (error)
+        return fail_code("Error in ReadObject", error);
+
+    *object = pack_le_uint32(response + 4);
+    return SUCCESS;
+}
+
+
+int epos_write_object(int fd, uint16_t index, uint8_t subindex,
+                     uint8_t nodeid, uint32_t object) {
+    flush_buffers(fd);
+    
+    uint8_t request[8] = {
+        index, index >> 8, subindex, nodeid,
+        object, object >> 8, object >> 16, object >> 24
+    };
+    if (send_frame(fd, WRITE_OBJECT_OPCODE, sizeof request, request))
+        return fail("Error sending WriteObject frame.");
+    
+    uint8_t response[4];
+    if (recv_frame(fd, sizeof response, response))
+        return fail("Error receiving WriteObject response.");
+    
+    uint32_t error = pack_le_uint32(response);
+    if (error)
+        return fail_code("Error in WriteObject", error);
+    
+    return SUCCESS;
 }
 
 
