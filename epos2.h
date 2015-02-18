@@ -27,3 +27,12 @@ int epos_read_object(int fd, uint16_t index, uint8_t subindex, uint8_t nodeid,
 int epos_write_object(int fd, uint16_t index, uint8_t subindex, uint8_t nodeid,
                       uint32_t object);
 
+
+/**
+ * @brief Open EPOS serial port.
+ *
+ * It is a blocking function call.
+ *
+ * @returns file descriptor if success, -1 otherwise.
+ */
+int epos_open_port(const char *path);

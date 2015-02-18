@@ -8,6 +8,7 @@
 #include <unistd.h>
 #ifdef _WIN32
 #include <windows.h>
+#include <io.h>
 #endif//_WIN32
 
 #include <stdio.h>
@@ -158,6 +159,52 @@ int recv_frame(int fd, size_t len, uint8_t *data) {
 
 
 //  --- Exported module functions --- //
+
+int epos_open_port(const char *path) {
+#ifdef _WIN32
+    HANDLE hComm = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, 0,
+                              OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
+    if (hComm == INVALID_HANDLE_VALUE)
+        return fail("Error opening port.");
+    
+
+    DCB dcb;
+    FillMemory(&dcb, sizeof(dcb), 0);
+    dcb.DCBlength = sizeof(dcb);
+    if (!BuildCommDCB("115200,n,8,1", &dcb)) {
+        CloseHandle(hComm);
+        return fail("Error building device control block.");
+    }
+    if (!SetCommState(hComm, &dcb)) {
+        CloseHandle(hComm);
+        return fail("Error setting port device control block.");
+    }
+
+    COMMTIMEOUTS timeouts = {
+        .ReadIntervalTimeout = 0,
+        .ReadTotalTimeoutMultiplier = 0,
+        .ReadTotalTimeoutConstant = TIMEOUT_MS,
+        .WriteTotalTimeoutMultiplier = 0,
+        .WriteTotalTimeoutConstant = TIMEOUT_MS
+    };
+    if (!SetCommTimeouts(hComm, &timeouts)) {
+        CloseHandle(hComm);
+        return fail("Error setting port timeouts.");
+    }
+    
+    int fd = _open_osfhandle((intptr_t)hComm, 0);
+    if (fd < 0)  {
+        CloseHandle(hComm);
+        return fail("Error getting port file descriptor.");
+    }
+    
+    return fd;
+    
+#else//_WIN32
+    return FAIL;
+#endif//_WIN32
+    
+}
 
 int epos_read_object(int fd, uint16_t index, uint8_t subindex,
                      uint8_t nodeid, uint32_t *object) {
