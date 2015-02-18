@@ -14,7 +14,7 @@
  * @returns 0 if success, nonzero otherwise.
  */
 int epos_read_object(int fd, uint16_t index, uint8_t subindex, uint8_t nodeid,
-                     uint32_t *object);
+                     uint32_t *value_ptr);
 
 
 /**
@@ -25,7 +25,7 @@ int epos_read_object(int fd, uint16_t index, uint8_t subindex, uint8_t nodeid,
  * @returns 0 if success, nonzero otherwise.
  */
 int epos_write_object(int fd, uint16_t index, uint8_t subindex, uint8_t nodeid,
-                      uint32_t object);
+                      uint32_t value);
 
 
 /**

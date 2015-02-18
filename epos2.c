@@ -207,7 +207,7 @@ int epos_open_port(const char *path) {
 }
 
 int epos_read_object(int fd, uint16_t index, uint8_t subindex,
-                     uint8_t nodeid, uint32_t *object) {
+                     uint8_t nodeid, uint32_t *value_ptr) {
     flush_buffers(fd);
     
     uint8_t request[4] = {index, index >> 8, subindex, nodeid};
@@ -222,18 +222,18 @@ int epos_read_object(int fd, uint16_t index, uint8_t subindex,
     if (error)
         return fail_code("Error in ReadObject", error);
 
-    *object = pack_le_uint32(response + 4);
+    *value_ptr = pack_le_uint32(response + 4);
     return SUCCESS;
 }
 
 
 int epos_write_object(int fd, uint16_t index, uint8_t subindex,
-                     uint8_t nodeid, uint32_t object) {
+                     uint8_t nodeid, uint32_t value) {
     flush_buffers(fd);
     
     uint8_t request[8] = {
         index, index >> 8, subindex, nodeid,
-        object, object >> 8, object >> 16, object >> 24
+        value, value >> 8, value >> 16, value >> 24
     };
     if (send_frame(fd, WRITE_OBJECT_OPCODE, sizeof request, request))
         return fail("Error sending WriteObject frame.");
