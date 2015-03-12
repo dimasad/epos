@@ -20,8 +20,8 @@ void usage(const char *progname) {
 
 
 void write_cmd(char *argv[]) {
-    int fd = epos_open_port(argv[2]);
-    if (fd < 0) {
+    HANDLE file = epos_open_port(argv[2]);
+    if (file == INVALID_HANDLE_VALUE) {
         fprintf(stderr, "Error opening port, aborting.\n");
         return;
     }
@@ -51,14 +51,14 @@ void write_cmd(char *argv[]) {
         return;
     }
     
-    if (epos_write_object(fd, index, subindex, nodeid, value))
+    if (epos_write_object(file, index, subindex, nodeid, value))
         fprintf(stderr, "Error writing object.\n");        
 }
 
 
 void read_cmd(char *argv[]) {
-   int fd = epos_open_port(argv[2]);
-    if (fd < 0) {
+    HANDLE file = epos_open_port(argv[2]);
+    if (file == INVALID_HANDLE_VALUE) {
         fprintf(stderr, "Error opening port, aborting.\n");
         return;
     }
@@ -83,7 +83,7 @@ void read_cmd(char *argv[]) {
     }
 
     int32_t value;
-    if (epos_read_object(fd, index, subindex, nodeid, (uint32_t*) &value)) {
+    if (epos_read_object(file, index, subindex, nodeid, (uint32_t*) &value)) {
         fprintf(stderr, "Error read object.\n");
         return;
     }
