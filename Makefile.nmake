@@ -1,0 +1,12 @@
+PROJ_DEFINE = /D DEBUG
+
+epos2cmd.exe: epos2cmd.obj epos2.obj
+	link /OUT:$@ $**
+
+
+epos2cmd.obj: epos2cmd.c
+	$(CC) $(PROJ_DEFINE) /c $**
+
+epos2.obj: epos2.c
+	$(CC) $(PROJ_DEFINE) /c $**
+

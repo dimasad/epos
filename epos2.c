@@ -24,7 +24,7 @@ enum {
 
 //  --- Utility functions --- //
 
-static inline int fail(const char *msg) {
+static int fail(const char *msg) {
 #ifdef DEBUG
     fprintf(stderr, "%s\n", msg);
 #endif//DEBUG
@@ -32,7 +32,7 @@ static inline int fail(const char *msg) {
 }
 
 
-static inline int fail_code(const char *msg, uint32_t code) {
+static int fail_code(const char *msg, uint32_t code) {
 #ifdef DEBUG
     fprintf(stderr, "%s: '%08x'\n", msg, code);
 #endif//DEBUG
@@ -174,7 +174,7 @@ HANDLE epos_open_port(const char *path) {
     DCB dcb;
     FillMemory(&dcb, sizeof(dcb), 0);
     dcb.DCBlength = sizeof(dcb);
-    if (!BuildCommDCB("115200,n,8,1", &dcb)) {
+    if (!BuildCommDCB("38400,n,8,1", &dcb)) {
         CloseHandle(file);
         fail("Error building device control block.");
         return INVALID_HANDLE_VALUE;
