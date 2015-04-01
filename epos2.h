@@ -3,6 +3,7 @@
  * @brief Header for Maxon Motor EPOS2 serial port communication driver.
  */
 
+
 #include <windows.h>
 
 #include <stdint.h>

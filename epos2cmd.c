@@ -21,7 +21,7 @@ void usage(const char *progname) {
 
 void write_cmd(char *argv[]) {
     HANDLE file = epos_open_port(argv[2]);
-    if (file == INVALID_HANDLE_VALUE) {
+    if (!file) {
         fprintf(stderr, "Error opening port, aborting.\n");
         return;
     }
@@ -58,7 +58,7 @@ void write_cmd(char *argv[]) {
 
 void read_cmd(char *argv[]) {
     HANDLE file = epos_open_port(argv[2]);
-    if (file == INVALID_HANDLE_VALUE) {
+    if (!file) {
         fprintf(stderr, "Error opening port, aborting.\n");
         return;
     }
