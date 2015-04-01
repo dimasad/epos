@@ -177,7 +177,7 @@ HANDLE epos_open_port(const char *path) {
     DCB dcb;
     FillMemory(&dcb, sizeof(dcb), 0);
     dcb.DCBlength = sizeof(dcb);
-    if (!BuildCommDCB("38400,n,8,1", &dcb)) {
+    if (!BuildCommDCB("115200,n,8,1", &dcb)) {
         CloseHandle(file);
         fail("Error building device control block.");
         return INVALID_HANDLE_VALUE;

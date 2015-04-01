@@ -27,25 +27,25 @@ void write_cmd(char *argv[]) {
     }
     
     char *end;
-    uint16_t index = strtol(argv[3], &end, 10);
+    uint16_t index = strtol(argv[3], &end, 0);
     if (end == argv[3]) {
         fprintf(stderr, "Error parsing index, aborting.\n");
         return;
     }
     
-    uint8_t subindex = strtol(argv[4], &end, 10);
+    uint8_t subindex = strtol(argv[4], &end, 0);
     if (end == argv[4]) {
         fprintf(stderr, "Error parsing subindex, aborting.\n");
         return;
     }
 
-    uint8_t nodeid = strtol(argv[5], &end, 10);
+    uint8_t nodeid = strtol(argv[5], &end, 0);
     if (end == argv[5]) {
         fprintf(stderr, "Error parsing nodeid, aborting.\n");
         return;
     }
 
-    uint32_t value = strtol(argv[6], &end, 10);
+    uint32_t value = strtol(argv[6], &end, 0);
     if (end == argv[6]) {
         fprintf(stderr, "Error parsing value, aborting.\n");
         return;
@@ -64,19 +64,19 @@ void read_cmd(char *argv[]) {
     }
     
     char *end;
-    uint16_t index = strtol(argv[3], &end, 10);
+    uint16_t index = strtol(argv[3], &end, 0);
     if (end == argv[3]) {
         fprintf(stderr, "Error parsing index, aborting.\n");
         return;
     }
     
-    uint8_t subindex = strtol(argv[4], &end, 10);
+    uint8_t subindex = strtol(argv[4], &end, 0);
     if (end == argv[4]) {
         fprintf(stderr, "Error parsing subindex, aborting.\n");
         return;
     }
 
-    uint8_t nodeid = strtol(argv[5], &end, 10);
+    uint8_t nodeid = strtol(argv[5], &end, 0);
     if (end == argv[5]) {
         fprintf(stderr, "Error parsing nodeid, aborting.\n");
         return;
@@ -87,7 +87,7 @@ void read_cmd(char *argv[]) {
         fprintf(stderr, "Error read object.\n");
         return;
     }
-    printf("read value: %d [%08x]\n", value, value);
+    printf("read value: %d [0x%08x]\n", value, value);
 }
 
 
