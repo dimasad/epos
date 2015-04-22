@@ -75,8 +75,37 @@ static uint32_t pack_le_uint32(uint8_t *buf) {
 
 //  --- Protocol functions --- //
 
-static uint16_t crc_byte(uint16_t crc, uint8_t data);
-static uint16_t crc_data(uint16_t crc, uint8_t* data, int len);
+static uint16_t crc_byte(uint16_t crc, uint8_t data) {
+    int i;
+    crc ^= (uint16_t)data << 8;
+    
+    for (i = 0; i < 8; i++)
+        if (crc & 0x8000)
+            crc = (crc << 1) ^ 0x1021;
+        else
+            crc <<= 1;
+    
+    return crc;
+}
+
+
+static uint16_t crc_data(uint16_t crc, uint8_t* data, int len) {
+    uint8_t low_byte, high_byte;
+    
+    len -= (len % 2); //For safety.
+    
+    while (len > 0) {
+        low_byte  = *data++;
+        high_byte = *data++;
+        
+        crc = crc_byte(crc, high_byte);
+        crc = crc_byte(crc, low_byte);
+        
+        len -= 2;
+    }
+    
+    return crc;
+}
 
 
 int send_frame(HANDLE file, uint8_t opcode, size_t len, uint8_t *data) {
@@ -248,33 +277,60 @@ int epos_write_object(HANDLE file, uint16_t index, uint8_t subindex,
 }
 
 
-static uint16_t crc_byte(uint16_t crc, uint8_t data) {
-    int i;
-    crc ^= (uint16_t)data << 8;
-    
-    for (i = 0; i < 8; i++)
-        if (crc & 0x8000)
-            crc = (crc << 1) ^ 0x1021;
-        else
-            crc <<= 1;
-    
-    return crc;
+int epos_fault_reset(HANDLE file, uint8_t nodeid){
+  return epos_write_object(file, EPOS_CONTROL_WORD_INDEX, 0,
+                           nodeid, EPOS_FAULT_RESET_CMD);
 }
 
-static uint16_t crc_data(uint16_t crc, uint8_t* data, int len) {
-    uint8_t low_byte, high_byte;
-    
-    len -= (len % 2); //For safety.
-    
-    while (len > 0) {
-        low_byte  = *data++;
-        high_byte = *data++;
-        
-        crc = crc_byte(crc, high_byte);
-        crc = crc_byte(crc, low_byte);
-        
-        len -= 2;
-    }
-    
-    return crc;
+
+int epos_shutdown(HANDLE file, uint8_t nodeid){
+  return epos_write_object(file, EPOS_CONTROL_WORD_INDEX, 0,
+               nodeid, EPOS_SHUTDOWN_CMD);
+}
+
+
+int epos_switch_on(HANDLE file, uint8_t nodeid){
+  return epos_write_object(file, EPOS_CONTROL_WORD_INDEX, 0,
+                           nodeid, EPOS_SWITCH_ON_CMD);
+}
+
+
+int epos_enable_operation(HANDLE file, uint8_t nodeid){
+  return epos_write_object(file, EPOS_CONTROL_WORD_INDEX, 0,
+                           nodeid, EPOS_ENABLE_OPERATION_CMD);
+}
+
+int epos_halt(HANDLE file, uint8_t nodeid){
+  return epos_write_object(file, EPOS_CONTROL_WORD_INDEX, 0,
+                           nodeid, EPOS_HALT_CMD);
+}
+
+
+int epos_goto_position_rel(HANDLE file, uint8_t nodeid){
+  return epos_write_object(file, EPOS_CONTROL_WORD_INDEX, 0,
+                           nodeid, EPOS_GOTO_POSITION_REL_CMD);
+}
+
+
+int epos_goto_position_abs(HANDLE file, uint8_t nodeid){
+  return epos_write_object(file, EPOS_CONTROL_WORD_INDEX, 0,
+                           nodeid, EPOS_GOTO_POSITION_ABS_CMD);
+}
+
+
+int epos_goto_velocity(HANDLE file, uint8_t nodeid){
+  return epos_write_object(file, EPOS_CONTROL_WORD_INDEX, 0,
+                           nodeid, EPOS_GOTO_VELOCITY_CMD);
+}
+
+
+int epos_set_mode(HANDLE file, uint8_t nodeid, epos_mode_t mode) {
+    return epos_write_object(file, EPOS_MODES_OPERATION_INDEX, 
+                             0, nodeid, mode);
+}
+
+
+int epos_set_target_position(HANDLE file, uint8_t nodeid, int32_t val) {
+    return epos_write_object(file, EPOS_TARGET_POSITION_INDEX,
+                             0, nodeid, val);
 }
