@@ -1,0 +1,5 @@
+LIBRARY EPOS
+EXPORTS
+    epos_write_object
+    epos_read_object
+    epos_open_port

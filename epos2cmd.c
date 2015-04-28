@@ -20,7 +20,8 @@ void usage(const char *progname) {
         "  %s pos [portpath] [target]\n"
         "  %s vel [portpath] [target]\n";
     
-    fprintf(stderr, usage, progname, progname, progname, progname, progname);
+    fprintf(stderr, usage, progname, progname, progname, 
+            progname, progname, progname);
 }
 
 
