@@ -1,2 +1,2 @@
-# epos2
-Maxon Motor EPOS2 70/10 control module
+# epos
+Maxon Motor EPOS 70/10 control module
