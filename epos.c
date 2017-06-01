@@ -1,9 +1,9 @@
 /**
- * @file epos2.c
- * @brief Implementation of Maxon Motor EPOS2 serial port communication driver.
+ * @file epos.c
+ * @brief Implementation of Maxon Motor EPOS serial port communication driver.
  */
 
-#include "epos2.h"
+#include "epos.h"
 
 #include <io.h>
 
@@ -134,7 +134,9 @@ int send_frame(HANDLE file, uint8_t opcode, size_t len, uint8_t *data) {
     crc = crc_byte(crc, len_minus_1);
     crc = crc_data(crc, data, len);
     
-    uint8_t crc_bytes[2] = {crc, crc >> 8};
+    uint8_t crc_bytes[2];
+    crc_bytes[0] = crc;
+    crc_bytes[1] = crc >> 8;
     if (!WriteFile(file, crc_bytes, 2, &written, 0) || written != 2)
         return fail("Error writing crc.");
     
@@ -143,7 +145,7 @@ int send_frame(HANDLE file, uint8_t opcode, size_t len, uint8_t *data) {
         return fail("Timeout waiting for ready ack.");
     
     if (end_ack != 'O')
-        return fail("Epos2 acknowledged error in reception.");
+        return fail("EPOS acknowledged error in reception.");
     
     return SUCCESS;
 }
@@ -217,13 +219,12 @@ HANDLE epos_open_port(const char *path) {
         return INVALID_HANDLE_VALUE;
     }
 
-    COMMTIMEOUTS timeouts = {
-        .ReadIntervalTimeout = 0,
-        .ReadTotalTimeoutMultiplier = 0,
-        .ReadTotalTimeoutConstant = TIMEOUT_MS,
-        .WriteTotalTimeoutMultiplier = 0,
-        .WriteTotalTimeoutConstant = TIMEOUT_MS
-    };
+    COMMTIMEOUTS timeouts;
+    timeouts.ReadIntervalTimeout = 0;
+    timeouts.ReadTotalTimeoutMultiplier = 0;
+    timeouts.ReadTotalTimeoutConstant = TIMEOUT_MS;
+    timeouts.WriteTotalTimeoutMultiplier = 0;
+    timeouts.WriteTotalTimeoutConstant = TIMEOUT_MS;
     if (!SetCommTimeouts(file, &timeouts)) {
         CloseHandle(file);
         fail("Error setting port timeouts.");
@@ -237,7 +238,11 @@ int epos_read_object(HANDLE file, uint16_t index, uint8_t subindex,
                      uint8_t nodeid, uint32_t *value_ptr) {
     flush_buffers(file);
     
-    uint8_t request[4] = {index, index >> 8, subindex, nodeid};
+    uint8_t request[4];
+    request[0] = index;
+    request[1] = index >> 8;
+    request[2] = subindex;
+    request[3] = nodeid;
     if (send_frame(file, READ_OBJECT_OPCODE, sizeof request, request))
         return fail("Error sending ReadObject frame.");
     
@@ -258,10 +263,15 @@ int epos_write_object(HANDLE file, uint16_t index, uint8_t subindex,
                      uint8_t nodeid, uint32_t value) {
     flush_buffers(file);
     
-    uint8_t request[8] = {
-        index, index >> 8, subindex, nodeid,
-        value, value >> 8, value >> 16, value >> 24
-    };
+    uint8_t request[8];
+    request[0] = index;
+    request[1] = index >> 8;
+    request[2] = subindex;
+    request[3] = nodeid;
+    request[4] = value;
+    request[5] = value >> 8;
+    request[6] = value >> 16;
+    request[7] = value >> 24;
     if (send_frame(file, WRITE_OBJECT_OPCODE, sizeof request, request))
         return fail("Error sending WriteObject frame.");
     

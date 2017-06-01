@@ -1,16 +1,16 @@
 PROJ_DEFINE = /D DEBUG
 
-all: epos2cmd.exe epos.dll
+all: eposcmd.exe epos.dll
 
-epos2cmd.exe: epos2cmd.obj epos2.obj
+eposcmd.exe: eposcmd.obj epos.obj
 	link /OUT:$@ $**
 
 
-epos2cmd.obj: epos2cmd.c
+eposcmd.obj: eposcmd.c
 	$(CC) $(PROJ_DEFINE) /c $**
 
-epos2.obj: epos2.c
+epos.obj: epos.c
 	$(CC) $(PROJ_DEFINE) /c $**
 
-epos.dll: epos2.c
+epos.dll: epos.c
 	$(CC) /D_USRDLL /D_WINDLL $** /link /DLL /OUT:$@ /DEF:epos.def

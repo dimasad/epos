@@ -1,9 +1,9 @@
 /**
- * @file epos2cmd.c
- * @brief Send commands to EPOS2 70/10.
+ * @file eposcmd.c
+ * @brief Send commands to EPOS 70/10.
  */
 
-#include "epos2.h"
+#include "epos.h"
 
 #include <stdio.h>
 #include <stdlib.h>

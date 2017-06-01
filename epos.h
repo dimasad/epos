@@ -1,6 +1,6 @@
 /**
- * @file epos2.h
- * @brief Header for Maxon Motor EPOS2 serial port communication driver.
+ * @file epos.h
+ * @brief Header for Maxon Motor EPOS serial port communication driver.
  */
 
 
